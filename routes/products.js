@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const { getProducts, addNewProduct, getProduct, removeProduct, updateProduct } = require('../controllers/ProductContoller');
 
+require('dotenv').config();
+const upload = require('../middlewares/uploadCloudinary');
+
 
 // GET all products
 router.get('/', async (req, res) => {
@@ -17,14 +20,19 @@ router.get('/:id', async (req, res) => {
 })
 
 // Add new product
-router.post('/new', async(req, res) => {
-    const response = await addNewProduct({title: req.body.title, price: req.body.price, quantity: req.body.quantity, category_id: req.body.category_id, description: req.body.description});
+router.post('/new', upload.single('productThumbnail'), async(req, res) => {
+    const response = await addNewProduct({
+        title: req.body.title, price: req.body.price, quantity:
+        req.body.quantity, category_id: req.body.category_id,
+        description: req.body.description,
+        productThumbnail: req.file.path
+        });
     if (response.success) return res.status(200).json(response);
     else return res.status(404).json(response);
 })
 // update product
-router.post('/edit/:id', async (req, res) => {
-        let response = await updateProduct(req.params.id, req.body)
+router.post('/edit/:id', upload.single('productThumbnail'), async (req, res) => {
+        let response = await updateProduct(req.params.id, req.body, req.file)
         if (response.success) return res.status(200).json(response);
         else return res.status(404).json(response);
 });

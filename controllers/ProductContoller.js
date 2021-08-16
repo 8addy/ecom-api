@@ -1,18 +1,24 @@
 const Product = require('../models/Product');
+const cloudinary  = require('cloudinary').v2;
+
 
 const getProducts = async () => {
     try {
         const products = await Product.find({});
-        return products;
+        return {
+            success: true, products
+        }
     } catch (error) {
-        return {success: false, message: 'Products not found..'}
+        return {success: false, message: 'Products not found..', err: error.message}
     }
 }
 
 const getProduct = async (id) => {
     try {
         const product = await Product.findById(id);
-        return product;
+        return {
+            success: true, product
+        }
     } catch (error) {
         return {success: false, message: 'Product not found..'}
     }
@@ -39,7 +45,8 @@ const removeProduct = async id => {
         }
 
         try {
-            await product.remove()
+            // await cloudinary.api.delete_resources(['ecomm/186504747_4577483418962963_321776833973553819_n_upvjbe']);
+            await product.remove();
             return {
                 success: true,
                 message: 'Deleted Product'
@@ -52,7 +59,7 @@ const removeProduct = async id => {
     }
 }
 
-const updateProduct = async (id, data) => {
+const updateProduct = async (id, data, file) => {
     let product;
     try {
         product = await Product.findById(id);
@@ -63,6 +70,7 @@ const updateProduct = async (id, data) => {
         product.description = data.description || product.description;
         product.quantity = data.quantity || product.quantity;
         product.price = data.price || product.price;
+        product.productThumbnail = file.path || product.productThumbnail;
         product.category_id = data.category_id || product.category_id;
         try {
             const updatedProduct = await product.save();
